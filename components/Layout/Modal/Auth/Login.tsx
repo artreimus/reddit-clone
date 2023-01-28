@@ -2,21 +2,31 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Button, Flex, Input, Text } from '@chakra-ui/react';
 import { setView } from '@/store/modalSlice';
+import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { auth } from '../../../../firebase/clientApp';
+import { FIREBASE_ERRORS } from '@/firebase/errors';
 
 type LoginProps = {};
 
 const Login: React.FC<LoginProps> = () => {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
 
+  const [signInWithEmailAndPassword, user, loading, error] =
+    useSignInWithEmailAndPassword(auth);
+
   const dispatch = useDispatch();
 
   // Firebase logic
-  const onSubmit = () => {};
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const { email, password } = loginForm;
+    signInWithEmailAndPassword(email, password);
+  };
 
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginForm((prev) => ({
       ...prev,
-      [event.target.name]: event.target.value,
+      [e.target.name]: e.target.value,
     }));
   };
 
@@ -46,10 +56,33 @@ const Login: React.FC<LoginProps> = () => {
         _hover={{ bg: 'white', border: '1px solid', borderColor: 'blue.500' }}
         bg="gray.50"
       />
-      <Button type="submit" height="36px" mt={2} mb={2} width="100%">
+      {error && (
+        <Text textAlign="center" color="red" fontSize="0.7rem">
+          {FIREBASE_ERRORS[error?.message as keyof typeof FIREBASE_ERRORS]}
+        </Text>
+      )}
+      <Button
+        type="submit"
+        height="36px"
+        mt={2}
+        mb={2}
+        width="100%"
+        isLoading={loading}
+      >
         Log In
       </Button>
-      <Flex fontSize="9pt" justifyContent="center">
+      <Flex fontSize="0.7rem" justifyContent="center" mb={1}>
+        <Text mr={1}>Forgot your password?</Text>
+        <Text
+          color="blue.500"
+          fontWeight={700}
+          cursor="pointer"
+          onClick={() => dispatch(setView('resetPassword'))}
+        >
+          Reset
+        </Text>
+      </Flex>
+      <Flex fontSize="0.7rem" justifyContent="center">
         <Text mr={1}>New here?</Text>
         <Text
           color="blue.500"

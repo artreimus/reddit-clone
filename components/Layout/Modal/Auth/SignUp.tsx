@@ -1,7 +1,10 @@
 import { setView } from '@/store/modalSlice';
 import { Input, Button, Flex, Text } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { auth } from '../../../../firebase/clientApp';
+import { FIREBASE_ERRORS } from '../../../../firebase/errors';
 
 const SignUp: React.FC = () => {
   const [signUpForm, setSignUpForm] = useState({
@@ -10,17 +13,43 @@ const SignUp: React.FC = () => {
     confirmPassword: '',
   });
 
+  const [error, setError] = useState('');
+
+  const [createUserWithEmailAndPassword, user, loading, createUserError] =
+    useCreateUserWithEmailAndPassword(auth);
+
   const dispatch = useDispatch();
 
   // Firebase logic
-  const onSubmit = () => {};
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (error) setError('');
+
+    const { password, confirmPassword, email } = signUpForm;
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    createUserWithEmailAndPassword(email, password);
+  };
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSignUpForm((prev) => ({
       ...prev,
-      [event.target.name]: event.target.value,
+      [e.target.name]: e.target.value,
     }));
   };
+
+  useEffect(() => {
+    if (createUserError) {
+      // Typecasting for object keys
+      setError(
+        FIREBASE_ERRORS[createUserError.message as keyof typeof FIREBASE_ERRORS]
+      );
+    }
+  }, [createUserError]);
 
   return (
     <form onSubmit={onSubmit}>
@@ -60,7 +89,19 @@ const SignUp: React.FC = () => {
         _hover={{ bg: 'white', border: '1px solid', borderColor: 'blue.500' }}
         bg="gray.50"
       />
-      <Button type="submit" height="36px" mt={2} mb={2} width="100%">
+      {error && (
+        <Text textAlign="center" color="red" fontSize="0.7rem">
+          {error}
+        </Text>
+      )}
+      <Button
+        type="submit"
+        height="36px"
+        mt={2}
+        mb={2}
+        width="100%"
+        isLoading={loading}
+      >
         Sign Up
       </Button>
       <Flex fontSize="9pt" justifyContent="center">
