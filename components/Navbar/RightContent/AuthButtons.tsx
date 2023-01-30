@@ -7,12 +7,10 @@ const AuthButtons: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleLoginClick = () => {
-    console.log('clicked');
     dispatch(setOpen(true));
     dispatch(setView('login'));
   };
   const handleSignUpClick = () => {
-    console.log('clicked');
     dispatch(setOpen(true));
     dispatch(setView('signup'));
   };

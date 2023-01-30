@@ -3,8 +3,10 @@ import { Input, Button, Flex, Text } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
-import { auth } from '../../../../firebase/clientApp';
+import { auth, firestore } from '../../../../firebase/clientApp';
 import { FIREBASE_ERRORS } from '../../../../firebase/errors';
+import { User } from 'firebase/auth';
+import { addDoc, collection } from 'firebase/firestore';
 
 const SignUp: React.FC = () => {
   const [signUpForm, setSignUpForm] = useState({
@@ -15,8 +17,12 @@ const SignUp: React.FC = () => {
 
   const [error, setError] = useState('');
 
-  const [createUserWithEmailAndPassword, user, loading, createUserError] =
-    useCreateUserWithEmailAndPassword(auth);
+  const [
+    createUserWithEmailAndPassword,
+    userCredentials,
+    loading,
+    createUserError,
+  ] = useCreateUserWithEmailAndPassword(auth);
 
   const dispatch = useDispatch();
 
@@ -34,6 +40,19 @@ const SignUp: React.FC = () => {
 
     createUserWithEmailAndPassword(email, password);
   };
+
+  const createUserDocument = async (user: User) => {
+    await addDoc(
+      collection(firestore, 'users'),
+      JSON.parse(JSON.stringify(user))
+    );
+  };
+
+  useEffect(() => {
+    if (userCredentials) {
+      createUserDocument(userCredentials.user);
+    }
+  }, [userCredentials]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSignUpForm((prev) => ({
