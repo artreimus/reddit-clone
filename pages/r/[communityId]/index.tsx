@@ -2,14 +2,14 @@ import CommunityNotFound from '@/components/Community/CommunityNotFound';
 import Header from '@/components/Community/Header';
 import PageContent from '@/components/Layout/PageContent';
 import { firestore } from '@/firebase/clientApp';
-import { CommunityState } from '@/store/communitiesSlice';
+import { Community } from '@/store/communitiesSlice';
 import { doc, getDoc } from 'firebase/firestore';
 import { GetServerSidePropsContext } from 'next';
 import React from 'react';
 import safeJsonStringify from 'safe-json-stringify';
 
 type CommunityPageProps = {
-  communityData: CommunityState;
+  communityData: Community;
 };
 
 const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {

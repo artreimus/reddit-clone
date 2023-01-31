@@ -1,14 +1,21 @@
-import { CommunityState } from '@/store/communitiesSlice';
+import useCommunityData from '@/hooks/useCommunityData';
+import { Community, CommunitySnippet } from '@/store/communitiesSlice';
 import { Box, Button, Flex, Icon, Image, Text } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { FaReddit } from 'react-icons/fa';
+import { useDispatch } from 'react-redux';
 
 type HeaderProps = {
-  communityData: CommunityState;
+  communityData: Community;
 };
 
 const Header: React.FC<HeaderProps> = ({ communityData }) => {
-  const [isJoined, setIsJoined] = useState(false); // read from our communitySnippets
+  const { mySnippets, onJoinOrLeaveCommunity, loading } = useCommunityData();
+  const isJoined = !!mySnippets.find(
+    (item: CommunitySnippet) => item.communityId === communityData.id
+  );
+
+  const dispatch = useDispatch();
 
   return (
     <Flex direction="column" width="100%" height="146px">
@@ -42,7 +49,8 @@ const Header: React.FC<HeaderProps> = ({ communityData }) => {
               height="30px"
               pr={6}
               pl={6}
-              onClick={() => {}}
+              onClick={() => onJoinOrLeaveCommunity(communityData, isJoined)}
+              isLoading={loading}
             >
               {isJoined ? 'Joined' : 'Join'}
             </Button>
