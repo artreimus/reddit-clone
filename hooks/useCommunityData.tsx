@@ -9,6 +9,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/firebase/clientApp';
+import { setOpen, setView } from '@/store/modalSlice';
 
 const useCommunityData = () => {
   const dispatch = useDispatch();
@@ -22,8 +23,8 @@ const useCommunityData = () => {
 
   const onJoinOrLeaveCommunity = (community: Community, isJoined?: boolean) => {
     if (!user) {
-      //   setAuthModalState({ open: true, view: 'login' });
-      console.log('no user');
+      dispatch(setOpen(true));
+      dispatch(setView('login'));
       return;
     }
 
