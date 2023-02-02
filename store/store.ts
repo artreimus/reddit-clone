@@ -1,14 +1,23 @@
-import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import { authModalSlice } from './modalSlice';
+import {
+  configureStore,
+  ThunkAction,
+  Action,
+  getDefaultMiddleware,
+} from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
+import { authModalSlice } from './modalSlice';
 import { communitiesSlice } from './communitiesSlice';
+import { postsSlice } from './postsSlice';
 
 const makeStore = () =>
   configureStore({
     reducer: {
       [authModalSlice.name]: authModalSlice.reducer,
       [communitiesSlice.name]: communitiesSlice.reducer,
+      [postsSlice.name]: postsSlice.reducer,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({ serializableCheck: false }),
     devTools: true,
   });
 
