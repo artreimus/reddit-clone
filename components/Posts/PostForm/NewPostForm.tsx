@@ -33,6 +33,7 @@ import TextInputs from './TextInputs';
 import ImageUpload from './ImageUpload';
 import { Post } from '@/store/postsSlice';
 import { firestore, storage } from '@/firebase/clientApp';
+import useSelectFile from '@/hooks/useSelectFile';
 
 type NewPostFormProps = {
   user: User;
@@ -69,7 +70,7 @@ export type TabItemType = {
 const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
   const [selectedTab, setSelectedTab] = useState(formTabs[0].title);
   const [textInputs, setTextInputs] = useState({ title: '', body: '' });
-  const [selectedFile, setSelectedFile] = useState<string>();
+  const { onSelectFile, setSelectedFile, selectedFile } = useSelectFile();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -112,22 +113,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
 
     // redirect the user back to communityPage
   };
-  const onSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // reader to process the file
-    const reader = new FileReader();
 
-    if (e.target.files?.[0]) {
-      reader.readAsDataURL(e.target.files[0]);
-    }
-
-    // event listener that will trigger when readAsDataUrl completes
-    reader.onload = (readerEvent) => {
-      // extract the result from the read file
-      if (readerEvent.target?.result) {
-        setSelectedFile(readerEvent.target.result as string);
-      }
-    };
-  };
   const onTextChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -162,7 +148,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
         {selectedTab === formTabs[1].title && (
           <ImageUpload
             selectedFile={selectedFile}
-            onSelectImage={onSelectImage}
+            onSelectImage={onSelectFile}
             setSelectedFile={setSelectedFile}
             setSelectedTab={setSelectedTab}
           />

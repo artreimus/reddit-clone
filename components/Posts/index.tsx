@@ -22,6 +22,7 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
     getCommunityPosts: getPosts,
     posts,
     onSelectPost,
+    postVotes,
   } = usePosts();
   const dispatch = useDispatch();
   const [user] = useAuthState(auth);
@@ -29,7 +30,7 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
   useEffect(() => {
     // @ts-ignore : dont know how to fix this with Redux-NextJS
     dispatch(getPosts({ communityId: communityData.id }));
-  }, []);
+  }, [dispatch, communityData, getPosts]);
 
   return (
     <>
@@ -43,7 +44,9 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
               key={post.id}
               onSelectPost={onSelectPost}
               userIsCreator={user?.uid === post.creatorId}
-              userVoteValue={undefined}
+              userVoteValue={
+                postVotes.find((vote) => vote.postId === post.id)?.voteValue
+              }
               loadingDelete={loadingDelete}
             />
           ))}

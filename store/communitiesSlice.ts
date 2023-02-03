@@ -29,7 +29,7 @@ export interface CommunitySnippet {
 interface CommunityState {
   mySnippets: CommunitySnippet[];
   loading: boolean;
-  //   visitedCommunities
+  currentCommunity?: Community;
 }
 
 const initialState: CommunityState = { mySnippets: [], loading: false };
@@ -157,6 +157,9 @@ export const communitiesSlice = createSlice({
         state.mySnippets = [...action.payload];
       }
     },
+    setCurrentCommunity(state, action) {
+      state.currentCommunity = action.payload;
+    },
   },
 
   extraReducers: (builder) => {
@@ -181,7 +184,7 @@ export const communitiesSlice = createSlice({
   },
 });
 
-export const { setMySnippets } = communitiesSlice.actions;
+export const { setMySnippets, setCurrentCommunity } = communitiesSlice.actions;
 
 export const selectCommunitiesState = (state: AppState) => state.communities;
 

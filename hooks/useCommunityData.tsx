@@ -13,7 +13,9 @@ import { setOpen, setView } from '@/store/modalSlice';
 
 const useCommunityData = () => {
   const dispatch = useDispatch();
-  const { mySnippets, loading } = useSelector(selectCommunitiesState);
+  const { mySnippets, loading, currentCommunity } = useSelector(
+    selectCommunitiesState
+  );
   const [user] = useAuthState(auth);
 
   useEffect(() => {
@@ -37,6 +39,6 @@ const useCommunityData = () => {
     dispatch(joinCommunity({ communityData: community, user }));
   };
 
-  return { mySnippets, loading, onJoinOrLeaveCommunity };
+  return { mySnippets, loading, onJoinOrLeaveCommunity, currentCommunity };
 };
 export default useCommunityData;

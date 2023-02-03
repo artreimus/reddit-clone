@@ -29,6 +29,8 @@ import moment from 'moment';
 import { useDispatch } from 'react-redux';
 import { AnyAction } from '@reduxjs/toolkit';
 import usePosts from '@/hooks/usePosts';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '@/firebase/clientApp';
 
 type PostItemProps = {
   post: Post;
@@ -47,6 +49,7 @@ const PostItem: React.FC<PostItemProps> = ({
 }) => {
   const [loadingImage, setLoadingImage] = useState(true);
   const { onVote, onDeletePost } = usePosts();
+  const [user] = useAuthState(auth);
   const [error, setError] = useState('');
 
   const dispatch = useDispatch();
@@ -91,7 +94,12 @@ const PostItem: React.FC<PostItemProps> = ({
           }
           color={userVoteValue === 1 ? 'brand.100' : 'gray.400'}
           fontSize={22}
-          onClick={() => {}}
+          onClick={() => {
+            dispatch(
+              // @ts-ignore
+              onVote({ post, vote: 1, communityId: post.communityId, user })
+            );
+          }}
           cursor="pointer"
         />
         <Text fontSize="9pt">{post.voteStatus}</Text>{' '}
@@ -103,7 +111,12 @@ const PostItem: React.FC<PostItemProps> = ({
           }
           color={userVoteValue === -1 ? '#4379ff' : 'gray.400'}
           fontSize={22}
-          onClick={() => {}}
+          onClick={() => {
+            dispatch(
+              //@ts-ignore
+              onVote({ post, vote: -1, communityId: post.communityId, user })
+            );
+          }}
           cursor="pointer"
         />
       </Flex>

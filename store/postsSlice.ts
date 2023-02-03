@@ -1,5 +1,6 @@
-import { firestore, storage } from '@/firebase/clientApp';
+import { auth, firestore, storage } from '@/firebase/clientApp';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { User } from 'firebase/auth';
 import {
   collection,
   deleteDoc,
@@ -9,8 +10,10 @@ import {
   query,
   Timestamp,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { deleteObject, ref } from 'firebase/storage';
+import { setOpen, setView } from './modalSlice';
 import { AppState } from './store';
 
 export type Post = {
@@ -66,26 +69,154 @@ export const onDeletePost = createAsyncThunk(
       thunkAPI.dispatch(deletePost(post.id));
       // throw new Error('testing error');
       return true;
-    } catch (error) {}
+    } catch (error) {
+      console.error('onDeletePost', error);
+    }
   }
 );
 
 export const onVote = createAsyncThunk(
   'posts/onVote',
-  async ({ post }: { post: Post }, thunkAPI) => {}
+  async (
+    {
+      post,
+      vote,
+      communityId,
+      user,
+    }: { post: Post; vote: number; communityId: string; user?: User | null },
+    thunkAPI
+  ) => {
+    if (!user?.uid) {
+      thunkAPI.dispatch(setOpen(true));
+      return thunkAPI.dispatch(setView('login'));
+    }
+    try {
+      let voteChange = vote;
+      const { voteStatus } = post;
+      console.log(voteStatus);
+      // Get the copy of state to be modified and updated later on
+      const batch = writeBatch(firestore);
+      const updatedPost = { ...post };
+
+      const postsState = thunkAPI.getState().posts;
+      const updatedPosts = [...postsState.posts];
+      let updatedPostVotes = [...postsState.postVotes];
+
+      const existingVote = updatedPostVotes.find(
+        (vote) => vote.postId === post.id
+      );
+
+      if (!existingVote) {
+        // Create a new postVote document
+        const postVoteRef = doc(
+          collection(firestore, 'users', `${user?.uid}/postVotes`)
+        );
+
+        const newVote: PostVote = {
+          id: postVoteRef.id,
+          postId: post.id!,
+          communityId,
+          voteValue: vote, // 1 or - 1
+        };
+
+        batch.set(postVoteRef, newVote);
+
+        // Add or Subtract 1 to post.voteStatus
+        updatedPost.voteStatus = voteStatus + vote;
+        updatedPostVotes = [...updatedPostVotes, newVote];
+      } else {
+        const postVoteRef = doc(
+          firestore,
+          'users',
+          `${user?.uid}/postVotes/${existingVote.id}`
+        );
+        // Removing their vote (upvote to neural or downvote to neutral)
+        if (existingVote.voteValue === vote) {
+          // Add or Subtract 1 to post.voteStatus
+          updatedPost.voteStatus = voteStatus - vote;
+          updatedPostVotes = updatedPostVotes.filter(
+            (vote) => vote.id !== existingVote.id
+          );
+
+          // Delete the postVote document
+          batch.delete(postVoteRef);
+          voteChange *= -1;
+        } else {
+          // Flipping their vote between upvote - downvote
+          // Add or subtract 2 from post.voteStatus
+          updatedPost.voteStatus = voteStatus + 2 * vote;
+
+          const voteIndex = postsState.postVotes.findIndex(
+            (vote: PostVote) => vote.id === existingVote.id
+          );
+
+          // Updating the existing post.voteStatus
+          updatedPostVotes[voteIndex] = { ...existingVote, voteValue: vote };
+          batch.update(postVoteRef, { voteValue: vote });
+          voteChange = 2 * vote;
+        }
+      }
+
+      const postRef = doc(firestore, 'posts', post.id!);
+      batch.update(postRef, { voteStatus: voteStatus + voteChange });
+      await batch.commit();
+
+      const postIndex = postsState.posts.findIndex(
+        (item: Post) => item.id === post.id
+      );
+
+      console.log(postIndex);
+      updatedPosts[postIndex] = updatedPost;
+
+      thunkAPI.dispatch(setPosts(updatedPosts));
+      thunkAPI.dispatch(setPostVotes(updatedPostVotes));
+    } catch (error) {
+      console.error('onVote', error);
+    }
+  }
 );
+
+export const getCommunityPostVote = createAsyncThunk(
+  'posts/getCommunityPostVote',
+  async (
+    { communityId, user }: { communityId: string; user?: User | null },
+    thunkAPI
+  ) => {
+    if (!user) return;
+    const postVotesQuery = query(
+      collection(firestore, 'users', `${user.uid}/postVotes`),
+      where('communityId', '==', communityId)
+    );
+
+    const postVoteDocs = await getDocs(postVotesQuery);
+    const postVotes = postVoteDocs.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    console.log('setting post...');
+    thunkAPI.dispatch(setPostVotes(postVotes));
+  }
+);
+
+export type PostVote = {
+  id: string;
+  postId: string;
+  communityId: string;
+  voteValue: number;
+};
 
 interface PostState {
   selectedPost: Post | null;
   posts: Post[];
   loadingPosts: boolean;
   loadingDelete: boolean;
-  // postVotes
+  postVotes: PostVote[];
 }
 
 const initialState: PostState = {
   selectedPost: null,
   posts: [],
+  postVotes: [],
   loadingPosts: false,
   loadingDelete: false,
 };
@@ -96,6 +227,7 @@ export const postsSlice = createSlice({
   reducers: {
     // Actions to set the state
     setPosts(state, action) {
+      console.log('setposts', action.payload);
       if (action.payload.payload) {
         state.posts = [...action.payload.payload];
       } else {
@@ -106,8 +238,9 @@ export const postsSlice = createSlice({
       console.log(action.payload);
       state.posts = state.posts.filter((post) => post.id !== action.payload);
     },
-    setLoadingPosts(state, action) {
-      state.loadingPosts = action.payload;
+    setPostVotes(state, action) {
+      console.log('setpostvotes', action.payload);
+      state.postVotes = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -126,7 +259,7 @@ export const postsSlice = createSlice({
   },
 });
 
-export const { setPosts, deletePost } = postsSlice.actions;
+export const { setPosts, deletePost, setPostVotes } = postsSlice.actions;
 
 export const selectPostsState = (state: AppState) => state.posts;
 
