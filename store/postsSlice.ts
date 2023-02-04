@@ -55,7 +55,15 @@ export const getCommunityPosts = createAsyncThunk(
 
 export const onDeletePost = createAsyncThunk(
   'posts/onDeletePost',
-  async ({ post }: { post: Post }, thunkAPI) => {
+  async (
+    {
+      post,
+      event,
+    }: { post: Post; event: React.MouseEvent<HTMLDivElement, MouseEvent> },
+    thunkAPI
+  ) => {
+    event.stopPropagation();
+
     try {
       // check if there is an image, delete if exist
       if (post.imageURL) {
@@ -79,13 +87,21 @@ export const onVote = createAsyncThunk(
   'posts/onVote',
   async (
     {
+      event,
       post,
       vote,
       communityId,
       user,
-    }: { post: Post; vote: number; communityId: string; user?: User | null },
+    }: {
+      event: React.MouseEvent<SVGElement, MouseEvent>;
+      post: Post;
+      vote: number;
+      communityId: string;
+      user?: User | null;
+    },
     thunkAPI
   ) => {
+    event.stopPropagation();
     if (!user?.uid) {
       thunkAPI.dispatch(setOpen(true));
       return thunkAPI.dispatch(setView('login'));
@@ -98,9 +114,11 @@ export const onVote = createAsyncThunk(
       const batch = writeBatch(firestore);
       const updatedPost = { ...post };
 
+      // @ts-ignore
       const postsState = thunkAPI.getState().posts;
       const updatedPosts = [...postsState.posts];
       let updatedPostVotes = [...postsState.postVotes];
+      let selectedPost = postsState.selectedPost;
 
       const existingVote = updatedPostVotes.find(
         (vote) => vote.postId === post.id
@@ -165,8 +183,11 @@ export const onVote = createAsyncThunk(
         (item: Post) => item.id === post.id
       );
 
-      console.log(postIndex);
       updatedPosts[postIndex] = updatedPost;
+
+      if (selectedPost) {
+        thunkAPI.dispatch(setSelectedPost(updatedPost));
+      }
 
       thunkAPI.dispatch(setPosts(updatedPosts));
       thunkAPI.dispatch(setPostVotes(updatedPostVotes));
@@ -227,20 +248,28 @@ export const postsSlice = createSlice({
   reducers: {
     // Actions to set the state
     setPosts(state, action) {
-      console.log('setposts', action.payload);
       if (action.payload.payload) {
         state.posts = [...action.payload.payload];
       } else {
         state.posts = [...action.payload];
       }
     },
+
     deletePost(state, action) {
-      console.log(action.payload);
       state.posts = state.posts.filter((post) => post.id !== action.payload);
     },
     setPostVotes(state, action) {
-      console.log('setpostvotes', action.payload);
       state.postVotes = action.payload;
+    },
+    setSelectedPost(state, action) {
+      state.selectedPost = action.payload;
+    },
+    setSelectedPostComments(state, action) {
+      if (action.payload === 'increment') {
+        state.selectedPost!.numberOfComments += 1;
+      } else if (action.payload === 'decrement') {
+        state.selectedPost!.numberOfComments -= 1;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -250,16 +279,16 @@ export const postsSlice = createSlice({
     builder.addCase(getCommunityPosts.fulfilled, (state) => {
       state.loadingPosts = false;
     });
-    builder.addCase(onDeletePost.pending, (state) => {
-      state.loadingDelete = true;
-    });
-    builder.addCase(onDeletePost.fulfilled, (state) => {
-      state.loadingDelete = false;
-    });
   },
 });
 
-export const { setPosts, deletePost, setPostVotes } = postsSlice.actions;
+export const {
+  setPosts,
+  deletePost,
+  setPostVotes,
+  setSelectedPost,
+  setSelectedPostComments,
+} = postsSlice.actions;
 
 export const selectPostsState = (state: AppState) => state.posts;
 

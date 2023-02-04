@@ -12,7 +12,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { NextRouter } from 'next/router';
+import { NextRouter, useRouter } from 'next/router';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { BsChat, BsDot } from 'react-icons/bs';
 import { FaReddit } from 'react-icons/fa';
@@ -27,7 +27,7 @@ import {
 import Link from 'next/link';
 import moment from 'moment';
 import { useDispatch } from 'react-redux';
-import { AnyAction } from '@reduxjs/toolkit';
+import { ActionCreatorWithPayload, AnyAction } from '@reduxjs/toolkit';
 import usePosts from '@/hooks/usePosts';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/firebase/clientApp';
@@ -36,8 +36,7 @@ type PostItemProps = {
   post: Post;
   userIsCreator: boolean;
   userVoteValue?: number;
-  onSelectPost: () => void;
-  loadingDelete: boolean;
+  onSelectPost?: ActionCreatorWithPayload<any, 'posts/setSelectedPost'>;
 };
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -45,19 +44,24 @@ const PostItem: React.FC<PostItemProps> = ({
   userIsCreator,
   userVoteValue,
   onSelectPost,
-  loadingDelete,
 }) => {
   const [loadingImage, setLoadingImage] = useState(true);
+  const [loadingDelete, setLoadingDelete] = useState(false);
   const { onVote, onDeletePost } = usePosts();
   const [user] = useAuthState(auth);
   const [error, setError] = useState('');
-
   const dispatch = useDispatch();
+  const router = useRouter();
 
-  const handleDelete = async () => {
+  const singlePostPage = !onSelectPost;
+
+  const handleDelete = async (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
     try {
+      setLoadingDelete(true);
       // @ts-ignore
-      const result = dispatch(onDeletePost({ post }));
+      const result = dispatch(onDeletePost({ post, event }));
       let success = true;
 
       await result.catch(() => {
@@ -65,8 +69,18 @@ const PostItem: React.FC<PostItemProps> = ({
       });
 
       if (!success) throw new Error('Failed to delete post');
+      if (singlePostPage) router.push(`/r/${post.communityId}`);
     } catch (error: any) {
       setError(error.message);
+    } finally {
+      setLoadingDelete(false);
+    }
+  };
+
+  const handleSelectPost = () => {
+    if (onSelectPost) {
+      dispatch(onSelectPost(post));
+      router.push(`/r/${post.communityId}/comments/${post.id}`);
     }
   };
 
@@ -74,19 +88,19 @@ const PostItem: React.FC<PostItemProps> = ({
     <Flex
       border="1px solid"
       bg="white"
-      borderColor={'gray.300'}
-      borderRadius={4}
-      _hover={{ borderColor: 'gray.500' }}
-      cursor="pointer"
-      onClick={onSelectPost}
+      borderColor={singlePostPage ? 'white' : 'gray.300'}
+      borderRadius={singlePostPage ? '4px 4px 0px 0px' : '4px'}
+      _hover={{ borderColor: singlePostPage ? 'none' : 'gray.500' }}
+      cursor={singlePostPage ? 'unset' : 'pointer'}
+      onClick={handleSelectPost}
     >
       <Flex
         direction={'column'}
         align="center"
-        bg="gray.100"
+        bg={singlePostPage ? 'none' : 'gray.100'}
         p={2}
         width="40px"
-        borderRadius={4}
+        borderRadius={singlePostPage ? ' none' : ' 3px 0px 0px 3px'}
       >
         <Icon
           as={
@@ -94,10 +108,16 @@ const PostItem: React.FC<PostItemProps> = ({
           }
           color={userVoteValue === 1 ? 'brand.100' : 'gray.400'}
           fontSize={22}
-          onClick={() => {
+          onClick={(event) => {
             dispatch(
               // @ts-ignore
-              onVote({ post, vote: 1, communityId: post.communityId, user })
+              onVote({
+                event,
+                post,
+                vote: 1,
+                communityId: post.communityId,
+                user,
+              })
             );
           }}
           cursor="pointer"
@@ -111,10 +131,16 @@ const PostItem: React.FC<PostItemProps> = ({
           }
           color={userVoteValue === -1 ? '#4379ff' : 'gray.400'}
           fontSize={22}
-          onClick={() => {
+          onClick={(event) => {
             dispatch(
               //@ts-ignore
-              onVote({ post, vote: -1, communityId: post.communityId, user })
+              onVote({
+                event,
+                post,
+                vote: -1,
+                communityId: post.communityId,
+                user,
+              })
             );
           }}
           cursor="pointer"

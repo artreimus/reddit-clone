@@ -17,11 +17,10 @@ type PostsProps = {
 const Posts: React.FC<PostsProps> = ({ communityData }) => {
   const {
     loadingPosts,
-    loadingDelete,
     selectedPost,
-    getCommunityPosts: getPosts,
+    getCommunityPosts,
     posts,
-    onSelectPost,
+    setSelectedPost,
     postVotes,
   } = usePosts();
   const dispatch = useDispatch();
@@ -29,8 +28,8 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
 
   useEffect(() => {
     // @ts-ignore : dont know how to fix this with Redux-NextJS
-    dispatch(getPosts({ communityId: communityData.id }));
-  }, [dispatch, communityData, getPosts]);
+    dispatch(getCommunityPosts({ communityId: communityData.id }));
+  }, [dispatch, communityData, getCommunityPosts]);
 
   return (
     <>
@@ -42,12 +41,11 @@ const Posts: React.FC<PostsProps> = ({ communityData }) => {
             <PostItem
               post={post}
               key={post.id}
-              onSelectPost={onSelectPost}
+              onSelectPost={setSelectedPost}
               userIsCreator={user?.uid === post.creatorId}
               userVoteValue={
                 postVotes.find((vote) => vote.postId === post.id)?.voteValue
               }
-              loadingDelete={loadingDelete}
             />
           ))}
         </Stack>
