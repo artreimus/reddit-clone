@@ -105,31 +105,31 @@ const Comments: React.FC<CommentsProps> = ({
     }
   };
 
-  const getPostComments = async () => {
-    try {
-      setFetchLoading(true);
-      const commentsQuery = query(
-        collection(firestore, 'comments'),
-        where('postId', '==', selectedPost?.id),
-        orderBy('createdAt', 'desc')
-      );
-
-      const commentDocs = await getDocs(commentsQuery);
-
-      const comments = commentDocs.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setComments(comments as Comment[]);
-    } catch (error) {
-      console.error('getPostComments', error);
-    } finally {
-      setFetchLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const getPostComments = async () => {
+      try {
+        setFetchLoading(true);
+        const commentsQuery = query(
+          collection(firestore, 'comments'),
+          where('postId', '==', selectedPost?.id),
+          orderBy('createdAt', 'desc')
+        );
+
+        const commentDocs = await getDocs(commentsQuery);
+
+        const comments = commentDocs.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setComments(comments as Comment[]);
+      } catch (error) {
+        console.error('getPostComments', error);
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+
     if (!selectedPost) return;
     getPostComments();
   }, [selectedPost]);
