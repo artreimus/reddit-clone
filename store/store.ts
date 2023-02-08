@@ -8,6 +8,7 @@ import { createWrapper } from 'next-redux-wrapper';
 import { authModalSlice } from './modalSlice';
 import { communitiesSlice } from './communitiesSlice';
 import { postsSlice } from './postsSlice';
+import { defaltMenuSlice } from './directoryMenuSlice';
 
 const makeStore = () =>
   configureStore({
@@ -15,6 +16,7 @@ const makeStore = () =>
       [authModalSlice.name]: authModalSlice.reducer,
       [communitiesSlice.name]: communitiesSlice.reducer,
       [postsSlice.name]: postsSlice.reducer,
+      [defaltMenuSlice.name]: defaltMenuSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({ serializableCheck: false }),

@@ -4,6 +4,7 @@ import {
   selectPostsState,
   setPostVotes,
   setSelectedPost,
+  setPosts,
 } from '@/store/postsSlice';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -42,6 +43,8 @@ const usePosts = () => {
     setSelectedPost,
     onDeletePost,
     postVotes,
+    setPosts,
+    setPostVotes,
   };
 };
 export default usePosts;

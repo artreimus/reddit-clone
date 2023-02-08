@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   fetchMySnippets,
   selectCommunitiesState,
@@ -16,9 +16,8 @@ import { doc, getDoc } from 'firebase/firestore';
 
 const useCommunityData = () => {
   const dispatch = useDispatch();
-  const { mySnippets, loading, currentCommunity } = useSelector(
-    selectCommunitiesState
-  );
+  const { mySnippets, loading, currentCommunity, isSnippetsFetched } =
+    useSelector(selectCommunitiesState);
   const [user] = useAuthState(auth);
   const router = useRouter();
 
@@ -54,7 +53,6 @@ const useCommunityData = () => {
     }
 
     if (isJoined) {
-      console.log('leaving....');
       // @ts-ignore
       return dispatch(leaveCommunity({ communityId: community.id, user }));
     }
@@ -62,6 +60,12 @@ const useCommunityData = () => {
     dispatch(joinCommunity({ communityData: community, user }));
   };
 
-  return { mySnippets, loading, onJoinOrLeaveCommunity, currentCommunity };
+  return {
+    mySnippets,
+    loading,
+    onJoinOrLeaveCommunity,
+    currentCommunity,
+    isSnippetsFetched,
+  };
 };
 export default useCommunityData;

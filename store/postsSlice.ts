@@ -214,7 +214,6 @@ export const getCommunityPostVote = createAsyncThunk(
       id: doc.id,
       ...doc.data(),
     }));
-    console.log('setting post...');
     thunkAPI.dispatch(setPostVotes(postVotes));
   }
 );

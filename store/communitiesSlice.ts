@@ -26,19 +26,12 @@ export interface CommunitySnippet {
   imageURL?: string;
 }
 
-interface CommunityState {
-  mySnippets: CommunitySnippet[];
-  loading: boolean;
-  currentCommunity?: Community;
-}
-
-const initialState: CommunityState = { mySnippets: [], loading: false };
-
 export const fetchMySnippets = createAsyncThunk(
   'communities/fetchMySnippets',
   async (user: User | null | undefined, thunkAPI) => {
     try {
       if (!user) {
+        thunkAPI.dispatch(setIsSnippetsFetched(false));
         return thunkAPI.dispatch(setMySnippets([]));
       }
 
@@ -47,6 +40,7 @@ export const fetchMySnippets = createAsyncThunk(
       );
       const snippets = snippetDocs.docs.map((doc) => ({ ...doc.data() }));
       thunkAPI.dispatch(setMySnippets(snippets));
+      thunkAPI.dispatch(setIsSnippetsFetched(true));
     } catch (error) {
       console.error(error);
     }
@@ -70,6 +64,7 @@ export const joinCommunity = createAsyncThunk(
       const newSnippet: CommunitySnippet = {
         communityId: communityData.id,
         imageURL: communityData.imageURL || '',
+        isModerator: user?.uid === communityData.creatorId,
       };
 
       batch.set(
@@ -134,8 +129,6 @@ export const leaveCommunity = createAsyncThunk(
           (item: CommunitySnippet) => item.communityId !== communityId
         );
 
-      console.log(newMySnippets);
-
       thunkAPI.dispatch(
         setMySnippets(thunkAPI.dispatch(setMySnippets(newMySnippets)))
       );
@@ -144,6 +137,19 @@ export const leaveCommunity = createAsyncThunk(
     }
   }
 );
+
+interface CommunityState {
+  mySnippets: CommunitySnippet[];
+  loading: boolean;
+  currentCommunity?: Community;
+  isSnippetsFetched: boolean;
+}
+
+const initialState: CommunityState = {
+  mySnippets: [],
+  loading: false,
+  isSnippetsFetched: false,
+};
 
 export const communitiesSlice = createSlice({
   name: 'communities',
@@ -159,6 +165,9 @@ export const communitiesSlice = createSlice({
     },
     setCurrentCommunity(state, action) {
       state.currentCommunity = action.payload;
+    },
+    setIsSnippetsFetched(state, action) {
+      state.isSnippetsFetched = action.payload;
     },
   },
 
@@ -184,7 +193,8 @@ export const communitiesSlice = createSlice({
   },
 });
 
-export const { setMySnippets, setCurrentCommunity } = communitiesSlice.actions;
+export const { setMySnippets, setCurrentCommunity, setIsSnippetsFetched } =
+  communitiesSlice.actions;
 
 export const selectCommunitiesState = (state: AppState) => state.communities;
 

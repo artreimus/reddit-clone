@@ -24,10 +24,9 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
   const dispatch = useDispatch();
 
   const { currentCommunity } = useSelector(selectCommunitiesState);
-  console.log(currentCommunity);
+
   useEffect(() => {
     if (communityData) {
-      console.log('we have the communityData');
       dispatch(setCurrentCommunity(communityData));
     }
   }, [communityData, dispatch]);

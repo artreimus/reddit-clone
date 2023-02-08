@@ -37,6 +37,7 @@ type PostItemProps = {
   userIsCreator: boolean;
   userVoteValue?: number;
   onSelectPost?: ActionCreatorWithPayload<any, 'posts/setSelectedPost'>;
+  isHomePage?: boolean;
 };
 
 const PostItem: React.FC<PostItemProps> = ({
@@ -44,6 +45,7 @@ const PostItem: React.FC<PostItemProps> = ({
   userIsCreator,
   userVoteValue,
   onSelectPost,
+  isHomePage,
 }) => {
   const [loadingImage, setLoadingImage] = useState(true);
   const [loadingDelete, setLoadingDelete] = useState(false);
@@ -83,6 +85,7 @@ const PostItem: React.FC<PostItemProps> = ({
       router.push(`/r/${post.communityId}/comments/${post.id}`);
     }
   };
+  console.log(userVoteValue);
 
   return (
     <Flex
@@ -157,10 +160,34 @@ const PostItem: React.FC<PostItemProps> = ({
         )}
         <Stack spacing={1} p="10px">
           <Stack direction="row" spacing="0.6" align="center" fontSize="9pt">
-            {/* Home Page Check */}
+            {isHomePage && (
+              <>
+                {post.communityImageURL ? (
+                  <Image
+                    src={post.communityImageURL}
+                    alt="community logo"
+                    borderRadius="full"
+                    boxSize="18px"
+                    mr={2}
+                  />
+                ) : (
+                  <Icon as={FaReddit} fontSize="18pt" mr={1} color="blue.500" />
+                )}
+                <Link href={`r/${post.communityId}`}>
+                  <Text
+                    fontWeight={700}
+                    _hover={{ textDecoration: 'underline' }}
+                    onClick={(event) => event.stopPropagation()}
+                  >{`r/${post.communityId}`}</Text>
+                </Link>
+                <Icon as={BsDot} color="gray.500" fontSize={8} />
+              </>
+            )}
             <Text>
               Posted by u/{post.creatorDisplayName}
-              {moment(new Date(post.createdAt?.seconds * 1000)).fromNow()}
+              <Text as="span" ml={1}>
+                {moment(new Date(post.createdAt?.seconds * 1000)).fromNow()}
+              </Text>
             </Text>
           </Stack>
           <Text fontSize="12pt" fontWeight={600}>

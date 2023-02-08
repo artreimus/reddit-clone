@@ -37,6 +37,7 @@ import useSelectFile from '@/hooks/useSelectFile';
 
 type NewPostFormProps = {
   user: User;
+  communityImageURL?: string;
 };
 
 const formTabs: TabItemType[] = [
@@ -67,7 +68,10 @@ export type TabItemType = {
   icon: typeof Icon.arguments;
 };
 
-const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
+const NewPostForm: React.FC<NewPostFormProps> = ({
+  user,
+  communityImageURL,
+}) => {
   const [selectedTab, setSelectedTab] = useState(formTabs[0].title);
   const [textInputs, setTextInputs] = useState({ title: '', body: '' });
   const { onSelectFile, setSelectedFile, selectedFile } = useSelectFile();
@@ -89,6 +93,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
       numberOfComments: 0,
       voteStatus: 0,
       createdAt: serverTimestamp() as Timestamp,
+      communityImageURL: communityImageURL || '',
     };
     // store the post in db post collection
     try {
