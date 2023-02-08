@@ -122,7 +122,7 @@ export default function Home() {
         <title>Reddit</title>
         <meta name="description" content="A clone of the Reddit Application" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/images/favicon.png" />
       </Head>
       <PageContent>
         <>
