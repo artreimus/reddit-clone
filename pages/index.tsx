@@ -18,43 +18,19 @@ import PostItem from '@/components/Posts/PostItem';
 import CreatePostLink from '@/components/Community/CreatePostLink';
 import { useDispatch } from 'react-redux';
 import useCommunityData from '@/hooks/useCommunityData';
+import Recommendations from '@/components/Community/Recommendations';
+import Premium from '@/components/Community/Premium';
+import PersonalHome from '@/components/Community/PersonalHome';
 
 export default function Home() {
   const [user, loadingUser] = useAuthState(auth);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
-  const {
-    setPosts,
-    posts,
-    onDeletePost,
-    onVote,
-    setSelectedPost,
-    postVotes,
-    setPostVotes,
-  } = usePosts();
+  const { setPosts, posts, setSelectedPost, postVotes, setPostVotes } =
+    usePosts();
 
   const { mySnippets, isSnippetsFetched } = useCommunityData();
-
-  const getUserPostVotes = async () => {
-    try {
-      const postIds = posts.map((post) => post.id);
-      const postVotesQuery = query(
-        collection(firestore, `users/${user?.uid}/postVotes`),
-        where('postId', 'in', postIds)
-      );
-
-      const postVoteDocs = await getDocs(postVotesQuery);
-      const postVotes = postVoteDocs.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      dispatch(setPostVotes(postVotes));
-    } catch (error) {
-      console.error('getUserPostVotes', error);
-    }
-  };
 
   const buildNoUserHomeFeed = async () => {
     try {
@@ -105,19 +81,37 @@ export default function Home() {
     }
   };
 
-  console.log(postVotes);
-
   useEffect(() => {
     if (!user && !loadingUser) buildNoUserHomeFeed();
   }, [user, loadingUser]);
 
   useEffect(() => {
+    const getUserPostVotes = async () => {
+      try {
+        const postIds = posts.map((post) => post.id);
+        const postVotesQuery = query(
+          collection(firestore, `users/${user?.uid}/postVotes`),
+          where('postId', 'in', postIds)
+        );
+
+        const postVoteDocs = await getDocs(postVotesQuery);
+        const postVotes = postVoteDocs.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        dispatch(setPostVotes(postVotes));
+      } catch (error) {
+        console.error('getUserPostVotes', error);
+      }
+    };
+
     if (user && posts.length) getUserPostVotes();
 
     return () => {
       dispatch(setPostVotes([]));
     };
-  }, [user, posts]);
+  }, [user, posts, dispatch, setPostVotes]);
   useEffect(() => {
     if (isSnippetsFetched) buildUserHomeFeed();
   }, [isSnippetsFetched]);
@@ -152,7 +146,11 @@ export default function Home() {
             </Stack>
           )}
         </>
-        <>{/* <Recommendations /> */}</>
+        <Stack spacing={5}>
+          <Recommendations />
+          <Premium />
+          <PersonalHome user={user} />
+        </Stack>
       </PageContent>
     </>
   );
