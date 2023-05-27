@@ -51,6 +51,11 @@ type CommunityPageProps = {
 const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
   const dispatch = useDispatch();
 
+  const communityId2 = 'hello world';
+  console.log('  communityId2.length', communityId2.length);
+  const communityId = ['hello world'];
+  console.log('  communityId.length', communityId.length);
+
   const { currentCommunity } = useSelector(selectCommunitiesState);
 
   useEffect(() => {
@@ -81,11 +86,18 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  console.log('context', context.query);
-  const communityId = context.query.communityId as string;
+  const communityId = context.query.communityId
+    ? context.query.communityId.length === 1
+      ? context.query.communityId[0]
+      : context.query.communityId
+    : '';
 
   try {
-    const communityDocRef = doc(firestore, 'communities', communityId);
+    const communityDocRef = doc(
+      firestore,
+      'communities',
+      communityId as string
+    );
 
     const communityDoc = await getDoc(communityDocRef);
 
