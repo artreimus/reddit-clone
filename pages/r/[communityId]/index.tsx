@@ -20,7 +20,9 @@ type CommunityPageProps = {
   communityData: Community;
 };
 
-const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
+const CommunityPage: React.FC<CommunityPageProps> = () => {
+  const communityData = '';
+
   console.log('communityData', communityData);
 
   const dispatch = useDispatch();
@@ -54,35 +56,30 @@ const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
   );
 };
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  try {
-    const communityDocRef = doc(
-      firestore,
-      'communities',
-      context.query.communityId as string
-    );
+// export async function getServerSideProps(context: GetServerSidePropsContext) {
+//   try {
+//     const communityDocRef = doc(
+//       firestore,
+//       'communities',
+//       context.query.communityId as string
+//     );
 
-    const communityDoc = await getDoc(communityDocRef);
+//     const communityDoc = await getDoc(communityDocRef);
 
-    return {
-      props: {
-        communityData: communityDoc.exists()
-          ? JSON.parse(
-              safeJsonStringify({
-                id: communityDoc.id,
-                ...communityDoc.data(),
-              })
-            )
-          : '',
-      },
-    };
-  } catch (error) {
-    return {
-      props: {
-        communityData: '',
-      },
-    };
-    console.error('getServerSideProps error', error);
-  }
-}
+//     return {
+//       props: {
+//         communityData: communityDoc.exists()
+//           ? JSON.parse(
+//               safeJsonStringify({
+//                 id: communityDoc.id,
+//                 ...communityDoc.data(),
+//               })
+//             )
+//           : '',
+//       },
+//     };
+//   } catch (error) {
+//     console.error('getServerSideProps error', error);
+//   }
+// }
 export default CommunityPage;
