@@ -10,6 +10,7 @@ import {
   selectCommunitiesState,
   setCurrentCommunity,
 } from '@/store/communitiesSlice';
+import { error } from 'console';
 import { doc, getDoc } from 'firebase/firestore';
 import { GetServerSidePropsContext } from 'next';
 import React, { useEffect } from 'react';
@@ -96,6 +97,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const communityDocRef = doc(firestore, 'communities', 'ArtReimus');
 
     const communityDoc = await getDoc(communityDocRef);
+
+    if (!communityDoc.exists()) return { props: { communityData: '' } };
 
     return {
       props: {
