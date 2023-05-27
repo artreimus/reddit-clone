@@ -85,7 +85,6 @@ const PostItem: React.FC<PostItemProps> = ({
       router.push(`/r/${post.communityId}/comments/${post.id}`);
     }
   };
-  console.log(userVoteValue);
 
   return (
     <Flex

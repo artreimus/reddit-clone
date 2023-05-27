@@ -85,8 +85,6 @@ export const joinCommunity = createAsyncThunk(
         numberOfMembers: increment(1),
       });
 
-      console.log(newMySnippets);
-
       await batch.commit();
       thunkAPI.dispatch(
         setMySnippets(thunkAPI.dispatch(setMySnippets(newMySnippets)))

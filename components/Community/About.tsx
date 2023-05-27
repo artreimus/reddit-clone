@@ -47,7 +47,6 @@ const About: React.FC<AboutProps> = ({ communityData }) => {
       await updateDoc(doc(firestore, 'communities', communityData.id), {
         imageURL: downloadURL,
       });
-      console.log('updated');
       // update state
       dispatch(
         setCurrentCommunity({ ...communityData, imageURL: downloadURL })

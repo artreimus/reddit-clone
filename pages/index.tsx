@@ -48,7 +48,7 @@ export default function Home() {
       }));
       dispatch(setPosts(posts));
     } catch (error) {
-      console.log('buildNoUserHomeFeed', error);
+      console.error('buildNoUserHomeFeed', error);
     } finally {
       setLoading(false);
     }

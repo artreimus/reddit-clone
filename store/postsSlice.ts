@@ -109,7 +109,6 @@ export const onVote = createAsyncThunk(
     try {
       let voteChange = vote;
       const { voteStatus } = post;
-      console.log(voteStatus);
       // Get the copy of state to be modified and updated later on
       const batch = writeBatch(firestore);
       const updatedPost = { ...post };
