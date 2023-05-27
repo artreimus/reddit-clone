@@ -20,43 +20,8 @@ type CommunityPageProps = {
   communityData: Community;
 };
 
-const CommunityPage: React.FC<CommunityPageProps> = () => {
-  const communityData = '';
-
-  console.log('communityData', communityData);
-
-  const dispatch = useDispatch();
-
-  const { currentCommunity } = useSelector(selectCommunitiesState);
-
-  useEffect(() => {
-    if (communityData) {
-      dispatch(setCurrentCommunity(communityData));
-    }
-  }, [communityData, dispatch]);
-
-  if (!communityData) {
-    return <CommunityNotFound />;
-  }
-  console.log(communityData);
-
-  return (
-    <>
-      <Header communityData={communityData} />
-      <PageContent>
-        <>
-          <CreatePostLink />
-          <Posts communityData={communityData} />
-        </>
-        <>
-          <About communityData={communityData} />
-        </>
-      </PageContent>
-    </>
-  );
-};
-
-// export async function getServerSideProps(context: GetServerSidePropsContext) {
+// const testFunction = async () => {
+//   const context = { query: { communityId: '' } };
 //   try {
 //     const communityDocRef = doc(
 //       firestore,
@@ -81,5 +46,64 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
 //   } catch (error) {
 //     console.error('getServerSideProps error', error);
 //   }
-// }
+// };
+
+const CommunityPage: React.FC<CommunityPageProps> = ({ communityData }) => {
+  const dispatch = useDispatch();
+
+  const { currentCommunity } = useSelector(selectCommunitiesState);
+
+  useEffect(() => {
+    if (communityData) {
+      dispatch(setCurrentCommunity(communityData));
+    }
+  }, [communityData, dispatch]);
+
+  if (!communityData) {
+    return <CommunityNotFound />;
+  }
+  // console.log(communityData);
+
+  return (
+    <>
+      <Header communityData={communityData} />
+      <PageContent>
+        <>
+          <CreatePostLink />
+          <Posts communityData={communityData} />
+        </>
+        <>
+          <About communityData={communityData} />
+        </>
+      </PageContent>
+    </>
+  );
+};
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  console.log('context', context.query);
+  const communityId = context.query.communityId as string;
+
+  try {
+    const communityDocRef = doc(firestore, 'communities', communityId);
+
+    const communityDoc = await getDoc(communityDocRef);
+
+    return {
+      props: {
+        context: { ...context.query },
+        communityData: communityDoc.exists()
+          ? JSON.parse(
+              safeJsonStringify({
+                id: communityDoc.id,
+                ...communityDoc.data(),
+              })
+            )
+          : '',
+      },
+    };
+  } catch (error) {
+    console.error('getServerSideProps error', error);
+  }
+}
 export default CommunityPage;
