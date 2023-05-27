@@ -93,11 +93,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : '';
 
   try {
-    const communityDocRef = doc(
-      firestore,
-      'communities',
-      communityId as string
-    );
+    const communityDocRef = doc(firestore, 'communities', 'ArtReimus');
 
     const communityDoc = await getDoc(communityDocRef);
 
