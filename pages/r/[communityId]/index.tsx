@@ -70,12 +70,18 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
 
   if (loading) {
     return (
-      <Flex minWidth="max-content" minHeight="90vh" alignItems="center">
+      <Flex
+        minWidth="100vw"
+        minHeight="90vh"
+        alignItems="center"
+        justifyContent="center"
+      >
         <PacmanLoader
           color={color}
           loading={loading}
           cssOverride={override}
-          size={120}
+          speedMultiplier={1.2}
+          size={40}
           aria-label="Loading Spinner"
           data-testid="loader"
         />

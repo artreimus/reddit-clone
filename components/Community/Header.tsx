@@ -44,12 +44,27 @@ const Header: React.FC<HeaderProps> = ({ communityData }) => {
             />
           )}
           <Flex padding="10px 12px">
-            <Flex direction="column" mr={6}>
-              <Text fontWeight={800} fontSize="16pt">
+            <Flex
+              direction="column"
+              mr={6}
+              maxWidth={{ base: '130px', sm: '100%' }}
+            >
+              <Text
+                fontWeight={800}
+                fontSize="16pt"
+                noOfLines={1}
+                textOverflow="ellipsis"
+              >
                 {communityData.id}
               </Text>
-              <Text fontWeight={800} fontSize="10pt" color="gray.400">
-                r/{communityData.id}
+              <Text
+                fontWeight={800}
+                fontSize="10pt"
+                color="gray.400"
+                textOverflow="ellipsis"
+                noOfLines={1}
+              >
+                r/{communityData.id}AAA
               </Text>
             </Flex>
             <Button
