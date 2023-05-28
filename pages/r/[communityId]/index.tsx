@@ -8,12 +8,19 @@ import { firestore } from '@/firebase/clientApp';
 import { Community, setCurrentCommunity } from '@/store/communitiesSlice';
 import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, CSSProperties } from 'react';
 import { useDispatch } from 'react-redux';
 import safeJsonStringify from 'safe-json-stringify';
+import PacmanLoader from 'react-spinners/PacmanLoader';
+import { Flex, Spinner } from '@chakra-ui/react';
 
 type CommunityPageProps = {
   communityData: Community;
+};
+
+const override: CSSProperties = {
+  display: 'block',
+  margin: '0 auto',
 };
 
 const CommunityPage: React.FC<CommunityPageProps> = () => {
@@ -21,6 +28,8 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
   const { communityId } = router.query;
   const [communityData, setCommunityData] = useState<Community>();
   const dispatch = useDispatch();
+  let [loading, setLoading] = useState(true);
+  let [color] = useState('#FF4300');
 
   useEffect(() => {
     const fetchCommunityData = async (communityId: string) => {
@@ -34,29 +43,45 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
 
         const communityDoc = await getDoc(communityDocRef);
 
-        setCommunityData(
-          communityDoc.exists()
-            ? JSON.parse(
-                safeJsonStringify({
-                  id: communityDoc.id,
-                  ...communityDoc.data(),
-                })
-              )
-            : ''
-        );
+        const data = communityDoc.exists()
+          ? JSON.parse(
+              safeJsonStringify({
+                id: communityDoc.id,
+                ...communityDoc.data(),
+              })
+            )
+          : '';
+
+        setCommunityData(data);
+
+        if (data) dispatch(setCurrentCommunity(communityData));
+        // setLoading(false);
       } catch (error) {
         console.error('getServerSideProps error', error);
       }
     };
 
+    setLoading(true);
+
     if (communityId) {
       fetchCommunityData(communityId as string);
     }
+  }, [dispatch, communityId, communityData?.id]);
 
-    if (communityData) {
-      dispatch(setCurrentCommunity(communityData));
-    }
-  }, [dispatch, communityId]);
+  if (loading) {
+    return (
+      <Flex minWidth="max-content" minHeight="90vh" alignItems="center">
+        <PacmanLoader
+          color={color}
+          loading={loading}
+          cssOverride={override}
+          size={120}
+          aria-label="Loading Spinner"
+          data-testid="loader"
+        />
+      </Flex>
+    );
+  }
 
   if (!communityData) {
     return <CommunityNotFound />;
