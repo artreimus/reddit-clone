@@ -55,7 +55,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
         setCommunityData(data);
 
         if (data) dispatch(setCurrentCommunity(communityData));
-        // setLoading(false);
+        setLoading(false);
       } catch (error) {
         console.error('getServerSideProps error', error);
       }
