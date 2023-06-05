@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ communityData }) => {
                 textOverflow="ellipsis"
                 noOfLines={1}
               >
-                r/{communityData.id}AAA
+                r/{communityData.id}
               </Text>
             </Flex>
             <Button
